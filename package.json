@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "eslint-config-prettier": "^8.8.0",
+    "flowbite-typography": "^1.0.3",
     "prettier": "2.8.8"
   }
 }
