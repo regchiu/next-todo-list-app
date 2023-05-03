@@ -29,7 +29,7 @@ To learn more about Next.js, take a look at the following resources:
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 - [Flowbite Documentation](https://flowbite.com/docs/getting-started/introduction) - learn about Flowbite.
-- [Flowbite React Components] - learn about Flowbite React Components.
+- [Flowbite React Components](https://flowbite-react.com) - learn about Flowbite React Components.
 - [React Icons](https://react-icons.github.io/react-icons) - learn about React Icons.
 - [Classnames](https://github.com/JedWatson/classnames#readme) - learn about Classnames.
 
