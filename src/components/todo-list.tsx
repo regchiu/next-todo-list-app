@@ -212,7 +212,10 @@ export default function TodoList() {
                     />
                   </div>
                   <div className="flex-auto">
-                    <Label className="break-all">
+                    <Label
+                      className="break-all"
+                      onDoubleClick={() => setEditTodoId(todo.id)}
+                    >
                       {editTodoId === todo.id ? (
                         <TextInput
                           type="text"
