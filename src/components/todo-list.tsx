@@ -7,6 +7,7 @@ import {
   MdSave,
   MdSearch,
 } from 'react-icons/md'
+import { FaSortAmountDown, FaSortAmountUp } from 'react-icons/fa'
 import cn from 'classnames'
 
 type Todo = {
@@ -16,6 +17,7 @@ type Todo = {
 }
 
 type Visibility = 'all' | 'active' | 'completed'
+type Sorting = 'ascending' | 'descending'
 
 const STORAGE_KEY = 'next-todo-list'
 
@@ -27,6 +29,7 @@ export default function TodoList() {
   const [visibility, setVisibility] = useState<Visibility>('all')
   const [searchText, setSearchText] = useState<string>('')
   const [editTodoId, setEditTodoId] = useState<number | null>(null)
+  const [sorting, setSorting] = useState<Sorting>('descending')
 
   const remaining = todos.filter((todo) => !todo.completed).length
 
@@ -35,13 +38,14 @@ export default function TodoList() {
   }, [todos])
 
   const filteredTodos = useMemo(
-    () => getFilteredTodos(todos, visibility, searchText),
-    [todos, visibility, searchText]
+    () => getFilteredTodos(todos, visibility, sorting, searchText),
+    [todos, visibility, sorting, searchText]
   )
 
   function getFilteredTodos(
     todos: Todo[],
     visibility: Visibility,
+    sorting: Sorting,
     searchText: string
   ) {
     let filteredTodos = []
@@ -58,6 +62,15 @@ export default function TodoList() {
       default:
         filteredTodos = [...todos]
     }
+
+    filteredTodos.sort((a, b) => {
+      if (sorting === 'descending') {
+        return b.id - a.id
+      } else {
+        return a.id - b.id
+      }
+    })
+
     return searchText
       ? filteredTodos.filter((todo) =>
           todo.text.toLowerCase().includes(searchText.toLowerCase())
@@ -140,6 +153,15 @@ export default function TodoList() {
               />
             </div>
             <div className="flex flex-row w-full gap-4">
+              {sorting === 'descending' ? (
+                <Button size="sm" onClick={() => setSorting('ascending')}>
+                  <FaSortAmountDown className="h-5 w-5" />
+                </Button>
+              ) : (
+                <Button size="sm" onClick={() => setSorting('descending')}>
+                  <FaSortAmountUp className="h-5 w-5" />
+                </Button>
+              )}
               <Button.Group>
                 <Button
                   size="sm"
