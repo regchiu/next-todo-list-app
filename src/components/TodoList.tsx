@@ -100,7 +100,7 @@ export default function TodoList() {
 
   return (
     <div className="w-full format lg:format-lg">
-      <h1 className="text-center">TODO LIST</h1>
+      <h1 className="text-center dark:text-gray-300">TODO LIST</h1>
       <TextInput
         type="text"
         autoFocus
@@ -113,8 +113,8 @@ export default function TodoList() {
       />
       {todos.length > 0 ? (
         <div className="w-full not-format mt-4 flex flex-col gap-4">
-          <header className="flex flex-col gap-4">
-            <div>
+          <section className="flex flex-col gap-4">
+            <div className="dark:text-gray-300">
               <span>{remaining}</span>{' '}
               <span>{remaining === 1 ? 'item' : 'items'}</span>{' '}
               <span>left</span>
@@ -154,7 +154,7 @@ export default function TodoList() {
                 </Button>
               </Button.Group>
             </div>
-          </header>
+          </section>
           <ul
             className={cn(
               [
@@ -165,6 +165,7 @@ export default function TodoList() {
                 'border',
                 'border-gray-200',
                 'rounded-lg',
+                'dark:bg-gray-700 dark:border-gray-600 dark:text-white',
               ],
               { hidden: filteredTodos.length === 0 }
             )}
@@ -173,7 +174,7 @@ export default function TodoList() {
               <li
                 key={todo.id}
                 className={cn(
-                  ['w-full', 'px-4', 'py-2'],
+                  ['w-full', 'px-4', 'py-2', 'dark:border-gray-600'],
                   { 'rounded-t-lg': index === 0 },
                   {
                     'border-b border-gray-200':
