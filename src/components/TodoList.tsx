@@ -98,6 +98,10 @@ export default function TodoList() {
     setTodos(todos.filter((todo) => todo.id !== todoId))
   }
 
+  function removeCompleted() {
+    setTodos(todos.filter((todo) => !todo.completed))
+  }
+
   return (
     <div className="w-full format lg:format-lg">
       <h1 className="text-center dark:text-gray-300">TODO LIST</h1>
@@ -129,7 +133,7 @@ export default function TodoList() {
                 onChange={(e) => setSearchText(e.target.value)}
               />
             </div>
-            <div>
+            <div className="flex flex-row w-full gap-4">
               <Button.Group>
                 <Button
                   size="sm"
@@ -153,6 +157,15 @@ export default function TodoList() {
                   Completed
                 </Button>
               </Button.Group>
+              <Button
+                size="sm"
+                outline={true}
+                color="info"
+                className={cn({ hidden: remaining >= todos.length })}
+                onClick={() => removeCompleted()}
+              >
+                Clear Completed
+              </Button>
             </div>
           </section>
           <ul
