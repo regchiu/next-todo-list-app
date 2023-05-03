@@ -102,6 +102,12 @@ export default function TodoList() {
     setTodos(todos.filter((todo) => !todo.completed))
   }
 
+  function typeEnterToSaveEdit(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter') {
+      setEditTodoId(null)
+    }
+  }
+
   return (
     <div className="w-full format lg:format-lg">
       <h1 className="text-center dark:text-gray-300">TODO LIST</h1>
@@ -214,6 +220,7 @@ export default function TodoList() {
                           onChange={(e) =>
                             changeTodo({ ...todo, text: e.target.value })
                           }
+                          onKeyUp={typeEnterToSaveEdit}
                         />
                       ) : (
                         <>{todo.completed ? <s>{todo.text}</s> : todo.text}</>
