@@ -65,7 +65,7 @@ export default function TodoList() {
       : filteredTodos
   }
 
-  function addTodo(event: React.KeyboardEvent<HTMLInputElement>) {
+  function typeEnterToAddTodo(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
       const text = todoText.trim()
       if (text) {
@@ -119,7 +119,7 @@ export default function TodoList() {
         shadow={true}
         rightIcon={MdKeyboardBackspace}
         onChange={(e) => setTodoText(e.target.value)}
-        onKeyUp={addTodo}
+        onKeyUp={typeEnterToAddTodo}
       />
       {todos.length > 0 ? (
         <div className="w-full not-format mt-4 flex flex-col gap-4">
