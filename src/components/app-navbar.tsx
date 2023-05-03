@@ -4,7 +4,7 @@ export default function AppNavbar() {
   return (
     <Navbar fluid={true} rounded={true}>
       <Navbar.Brand />
-      <DarkThemeToggle className="" />
+      <DarkThemeToggle />
     </Navbar>
   )
 }

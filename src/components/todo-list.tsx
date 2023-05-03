@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
-import { TextInput, Checkbox, Label, Button, ListGroup } from 'flowbite-react'
+import { TextInput, Checkbox, Label, Button } from 'flowbite-react'
 import {
   MdKeyboardBackspace,
   MdDelete,
@@ -17,7 +17,7 @@ type Todo = {
 
 type Visibility = 'all' | 'active' | 'completed'
 
-const STORAGE_KEY = 'next-todolist'
+const STORAGE_KEY = 'next-todo-list'
 
 export default function TodoList() {
   const [todoText, setTodoText] = useState<string>('')
