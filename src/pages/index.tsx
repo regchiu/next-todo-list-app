@@ -9,7 +9,7 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Todo List</title>
       </Head>
       <ClientOnlyTodoList />
     </>
