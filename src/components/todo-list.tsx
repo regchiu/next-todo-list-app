@@ -43,7 +43,7 @@ function NewTodoInput({ onAdd }: { onAdd: (newTodo: Todo) => void }) {
     <TextInput
       type="text"
       autoFocus
-      placeholder="What needs to be done?"
+      placeholder="What needs to be done?(Press enter to add)"
       value={todoText}
       shadow={true}
       rightIcon={MdKeyboardBackspace}
