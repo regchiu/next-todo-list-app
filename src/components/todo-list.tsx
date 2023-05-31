@@ -101,13 +101,13 @@ function ClearCompletedButton({
 
 function SortingButton({
   sorting,
-  onSort,
+  setSorting,
 }: {
   sorting: Sorting
-  onSort: (newSorting: Sorting) => void
+  setSorting: Dispatch<SetStateAction<Sorting>>
 }) {
-  function handleClick(sorting: Sorting) {
-    onSort(sorting)
+  function handleClick(direction: Sorting) {
+    setSorting(direction)
   }
 
   if (sorting === 'descending') {
@@ -301,10 +301,7 @@ export default function TodoList() {
               />
             </div>
             <div className="flex flex-row w-full gap-4">
-              <SortingButton
-                sorting={sorting}
-                onSort={(newSorting) => setSorting(newSorting)}
-              />
+              <SortingButton sorting={sorting} setSorting={setSorting} />
               <Button.Group>
                 <Button
                   size="sm"
