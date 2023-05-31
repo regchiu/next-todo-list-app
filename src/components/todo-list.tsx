@@ -63,15 +63,12 @@ function NewTodoInput({
 }
 
 function ActiveTodoRemainingText({ remaining }: { remaining: number }) {
-  let remainingUnitText = 'item'
-  if (remaining > 1) {
-    remainingUnitText = 'items'
-  }
-
   return (
     <div className="dark:text-gray-300">
-      <span>{remaining}</span> <span>{remainingUnitText}</span>{' '}
-      <span>left</span>
+      <span>
+        <strong>{remaining}</strong>{' '}
+        <span>{remaining > 1 ? 'item' : 'items'} left</span>
+      </span>
     </div>
   )
 }
