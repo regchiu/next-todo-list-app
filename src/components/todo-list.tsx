@@ -62,67 +62,96 @@ function NewTodoInput({
   )
 }
 
-function ActiveTodoRemainingText({ remaining }: { remaining: number }) {
-  return (
-    <div className="dark:text-gray-300">
-      <span>
-        <strong>{remaining}</strong>{' '}
-        <span>{remaining > 1 ? 'item' : 'items'} left</span>
-      </span>
-    </div>
-  )
-}
-
-function ClearCompletedButton({
-  className,
+function FilterBar({
   todos,
   setTodos,
+  searchText,
+  setSearchText,
+  sorting,
+  setSorting,
+  visibility,
+  setVisibility,
 }: {
-  className?: string
   todos: Array<Todo>
   setTodos: Dispatch<SetStateAction<Array<Todo>>>
+  searchText: string
+  setSearchText: Dispatch<SetStateAction<string>>
+  sorting: Sorting
+  setSorting: Dispatch<SetStateAction<Sorting>>
+  visibility: Visibility
+  setVisibility: Dispatch<SetStateAction<Visibility>>
 }) {
-  function handleClick() {
+  const remaining = todos.filter((todo) => !todo.completed).length
+
+  function handleSortingClick(direction: Sorting) {
+    setSorting(direction)
+  }
+
+  function handleClearCompletedClick() {
     setTodos(todos.filter((todo) => !todo.completed))
   }
 
   return (
-    <Button
-      className={className}
-      size="sm"
-      outline={true}
-      color="info"
-      onClick={handleClick}
-    >
-      Clear Completed
-    </Button>
+    <section className="flex flex-col gap-4">
+      <div className="dark:text-gray-300">
+        <span>
+          <strong>{remaining}</strong>{' '}
+          <span>{remaining > 1 ? 'item' : 'items'} left</span>
+        </span>
+      </div>
+      <TextInput
+        type="text"
+        shadow={true}
+        value={searchText}
+        placeholder="Search todo text"
+        rightIcon={MdSearch}
+        onChange={(e) => setSearchText(e.target.value)}
+      />
+      <div className="flex flex-row w-full gap-4">
+        {sorting === 'descending' ? (
+          <Button size="sm" onClick={() => handleSortingClick('ascending')}>
+            <FaSortAmountDown className="h-5 w-5" />
+          </Button>
+        ) : (
+          <Button size="sm" onClick={() => handleSortingClick('descending')}>
+            <FaSortAmountUp className="h-5 w-5" />
+          </Button>
+        )}
+        <Button.Group>
+          <Button
+            size="sm"
+            color={visibility === 'all' ? 'info' : 'gray'}
+            onClick={() => setVisibility('all')}
+          >
+            All
+          </Button>
+          <Button
+            size="sm"
+            color={visibility === 'active' ? 'info' : 'gray'}
+            onClick={() => setVisibility('active')}
+          >
+            Active
+          </Button>
+          <Button
+            size="sm"
+            color={visibility === 'completed' ? 'info' : 'gray'}
+            onClick={() => setVisibility('completed')}
+          >
+            Completed
+          </Button>
+        </Button.Group>
+        <Button
+          className={cn({ hidden: remaining >= todos.length })}
+          size="sm"
+          outline={true}
+          color="info"
+          onClick={() => handleClearCompletedClick()}
+        >
+          Clear Completed
+        </Button>
+      </div>
+    </section>
   )
-}
-
-function SortingButton({
-  sorting,
-  setSorting,
-}: {
-  sorting: Sorting
-  setSorting: Dispatch<SetStateAction<Sorting>>
-}) {
-  function handleClick(direction: Sorting) {
-    setSorting(direction)
-  }
-
-  if (sorting === 'descending') {
-    return (
-      <Button size="sm" onClick={() => handleClick('ascending')}>
-        <FaSortAmountDown className="h-5 w-5" />
-      </Button>
-    )
-  } else {
-    return (
-      <Button size="sm" onClick={() => handleClick('descending')}>
-        <FaSortAmountUp className="h-5 w-5" />
-      </Button>
-    )
-  }
 }
 
 function TodoItem({
@@ -233,8 +262,6 @@ export default function TodoList() {
   const [editTodoId, setEditTodoId] = useState<EditTodoId>(null)
   const [sorting, setSorting] = useState<Sorting>('descending')
 
-  const remaining = todos.filter((todo) => !todo.completed).length
-
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
   }, [todos])
@@ -286,50 +313,16 @@ export default function TodoList() {
       <NewTodoInput todos={todos} setTodos={setTodos} />
       {todos.length > 0 && (
         <div className="w-full not-format mt-4 flex flex-col gap-4">
-          <section className="flex flex-col gap-4">
-            <ActiveTodoRemainingText remaining={remaining} />
-            <div>
-              <TextInput
-                type="text"
-                shadow={true}
-                value={searchText}
-                placeholder="Search todo text"
-                rightIcon={MdSearch}
-                onChange={(e) => setSearchText(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-row w-full gap-4">
-              <SortingButton sorting={sorting} setSorting={setSorting} />
-              <Button.Group>
-                <Button
-                  size="sm"
-                  color={visibility === 'all' ? 'info' : 'gray'}
-                  onClick={() => setVisibility('all')}
-                >
-                  All
-                </Button>
-                <Button
-                  size="sm"
-                  color={visibility === 'active' ? 'info' : 'gray'}
-                  onClick={() => setVisibility('active')}
-                >
-                  Active
-                </Button>
-                <Button
-                  size="sm"
-                  color={visibility === 'completed' ? 'info' : 'gray'}
-                  onClick={() => setVisibility('completed')}
-                >
-                  Completed
-                </Button>
-              </Button.Group>
-              <ClearCompletedButton
-                className={cn({ hidden: remaining >= todos.length })}
-                todos={todos}
-                setTodos={setTodos}
-              />
-            </div>
-          </section>
+          <FilterBar
+            todos={todos}
+            setTodos={setTodos}
+            searchText={searchText}
+            setSearchText={setSearchText}
+            sorting={sorting}
+            setSorting={setSorting}
+            visibility={visibility}
+            setVisibility={setVisibility}
+          />
           <ul
             className={cn(
               [
