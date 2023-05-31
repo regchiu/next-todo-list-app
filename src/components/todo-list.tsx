@@ -280,18 +280,6 @@ export default function TodoList() {
       : filteredTodos
   }
 
-  function changeTodo(nextTodo: Todo) {
-    setTodos(
-      todos.map((todo) => {
-        if (todo.id === nextTodo.id) {
-          return nextTodo
-        } else {
-          return todo
-        }
-      })
-    )
-  }
-
   return (
     <div className="w-full format lg:format-lg">
       <h1 className="text-center dark:text-gray-300">TODO LIST</h1>
@@ -375,7 +363,18 @@ export default function TodoList() {
                     <Checkbox
                       checked={todo.completed}
                       onChange={(e) =>
-                        changeTodo({ ...todo, completed: e.target.checked })
+                        setTodos(
+                          todos.map((currentTodo) => {
+                            if (currentTodo.id === todo.id) {
+                              return {
+                                ...todo,
+                                completed: e.target.checked,
+                              }
+                            } else {
+                              return currentTodo
+                            }
+                          })
+                        )
                       }
                     />
                   </div>
