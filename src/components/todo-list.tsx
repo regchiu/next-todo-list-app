@@ -76,14 +76,14 @@ function ActiveTodoRemainingText({ remaining }: { remaining: number }) {
 function ClearCompletedButton({
   className,
   todos,
-  onRemove,
+  setTodos,
 }: {
   className?: string
   todos: Array<Todo>
-  onRemove: (newTodos: Array<Todo>) => void
+  setTodos: Dispatch<SetStateAction<Array<Todo>>>
 }) {
   function handleClick() {
-    onRemove(todos.filter((todo) => !todo.completed))
+    setTodos(todos.filter((todo) => !todo.completed))
   }
 
   return (
@@ -331,7 +331,7 @@ export default function TodoList() {
               <ClearCompletedButton
                 className={cn({ hidden: remaining >= todos.length })}
                 todos={todos}
-                onRemove={(newTodos) => setTodos(newTodos)}
+                setTodos={setTodos}
               />
             </div>
           </section>
