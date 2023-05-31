@@ -125,7 +125,7 @@ function SortingButton({
   }
 }
 
-function TodoItemDescription({
+function TodoItem({
   todo,
   todos,
   editTodoId,
@@ -159,68 +159,68 @@ function TodoItemDescription({
     }
   }
 
-  return (
-    <Label className="break-all">
-      {todo.id === editTodoId ? (
-        <TextInput
-          type="text"
-          value={todo.text}
-          onChange={handleChange}
-          onKeyUp={handleKeyUp}
-        />
-      ) : todo.completed ? (
-        <s>{todo.text}</s>
-      ) : (
-        todo.text
-      )}
-    </Label>
-  )
-}
-
-function TodoItemAction({
-  todo,
-  editTodoId,
-  onEdit,
-  onSave,
-  onDelete,
-}: {
-  todo: Todo
-  editTodoId: EditTodoId
-  onEdit: (newEditTodoId: EditTodoId) => void
-  onSave: (newEditTodoId: EditTodoId) => void
-  onDelete: (newEditTodoId: EditTodoId) => void
-}) {
   function handleEditClick() {
-    onEdit(todo.id)
+    setEditTodoId(todo.id)
   }
+
   function handleSaveClick() {
-    onSave(null)
+    setEditTodoId(null)
   }
+
   function handleDeleteClick() {
-    onDelete(todo.id)
-  }
-
-  let editButton = (
-    <Button size="sm" onClick={handleEditClick}>
-      <MdEdit />
-    </Button>
-  )
-
-  if (editTodoId === todo.id) {
-    editButton = (
-      <Button size="sm" color="success" onClick={handleSaveClick}>
-        <MdSave />
-      </Button>
-    )
+    setTodos(todos.filter((currentTodo) => currentTodo.id !== todo.id))
   }
 
   return (
-    <>
-      {editButton}
-      <Button size="sm" color="failure" onClick={handleDeleteClick}>
-        <MdDelete />
-      </Button>
-    </>
+    <div className="flex flex-row items-center w-full gap-4">
+      <Checkbox
+        checked={todo.completed}
+        onChange={(e) =>
+          setTodos(
+            todos.map((currentTodo) => {
+              if (currentTodo.id === todo.id) {
+                return {
+                  ...todo,
+                  completed: e.target.checked,
+                }
+              } else {
+                return currentTodo
+              }
+            })
+          )
+        }
+      />
+      <div className="flex-auto">
+        <Label className="break-all">
+          {todo.id === editTodoId ? (
+            <TextInput
+              type="text"
+              value={todo.text}
+              onChange={handleChange}
+              onKeyUp={handleKeyUp}
+            />
+          ) : todo.completed ? (
+            <s>{todo.text}</s>
+          ) : (
+            todo.text
+          )}
+        </Label>
+      </div>
+      <div className="flex flex-row gap-2">
+        {todo.id === editTodoId ? (
+          <Button size="sm" color="success" onClick={handleSaveClick}>
+            <MdSave />
+          </Button>
+        ) : (
+          <Button size="sm" onClick={handleEditClick}>
+            <MdEdit />
+          </Button>
+        )}
+        <Button size="sm" color="failure" onClick={handleDeleteClick}>
+          <MdDelete />
+        </Button>
+      </div>
+    </div>
   )
 }
 
@@ -358,49 +358,13 @@ export default function TodoList() {
                   { 'rounded-b-lg': index === filteredTodos.length - 1 }
                 )}
               >
-                <div className="flex flex-row items-center w-full gap-4">
-                  <div>
-                    <Checkbox
-                      checked={todo.completed}
-                      onChange={(e) =>
-                        setTodos(
-                          todos.map((currentTodo) => {
-                            if (currentTodo.id === todo.id) {
-                              return {
-                                ...todo,
-                                completed: e.target.checked,
-                              }
-                            } else {
-                              return currentTodo
-                            }
-                          })
-                        )
-                      }
-                    />
-                  </div>
-                  <div className="flex-auto">
-                    <TodoItemDescription
-                      todo={todo}
-                      todos={todos}
-                      editTodoId={editTodoId}
-                      setTodos={setTodos}
-                      setEditTodoId={setEditTodoId}
-                    />
-                  </div>
-                  <div className="flex flex-row gap-2">
-                    <TodoItemAction
-                      todo={todo}
-                      editTodoId={editTodoId}
-                      onEdit={(newEditTodoId) => setEditTodoId(newEditTodoId)}
-                      onSave={(newEditTodoId) => setEditTodoId(newEditTodoId)}
-                      onDelete={(newEditTodoId) =>
-                        setTodos(
-                          todos.filter((todo) => todo.id !== newEditTodoId)
-                        )
-                      }
-                    />
-                  </div>
-                </div>
+                <TodoItem
+                  todo={todo}
+                  todos={todos}
+                  editTodoId={editTodoId}
+                  setEditTodoId={setEditTodoId}
+                  setTodos={setTodos}
+                />
               </li>
             ))}
           </ul>
