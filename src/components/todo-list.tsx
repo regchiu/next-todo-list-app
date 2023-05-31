@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { TextInput, Checkbox, Label, Button } from 'flowbite-react'
 import {
   MdKeyboardBackspace,
@@ -22,19 +22,28 @@ type EditTodoId = number | null
 
 const STORAGE_KEY = 'next-todo-list'
 
-function NewTodoInput({ onAdd }: { onAdd: (newTodo: Todo) => void }) {
+function NewTodoInput({
+  todos,
+  setTodos,
+}: {
+  todos: Array<Todo>
+  setTodos: Dispatch<SetStateAction<Array<Todo>>>
+}) {
   const [todoText, setTodoText] = useState<string>('')
 
   function handleKeyUpEnter(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
-      const text = todoText.trim()
+      const text = (event.target as HTMLInputElement).value.trim()
       if (text) {
+        setTodos([
+          ...todos,
+          {
+            id: Date.now(),
+            text,
+            completed: false,
+          },
+        ])
         setTodoText('')
-        onAdd({
-          id: Date.now(),
-          text,
-          completed: false,
-        })
       }
     }
   }
@@ -279,7 +288,7 @@ export default function TodoList() {
   return (
     <div className="w-full format lg:format-lg">
       <h1 className="text-center dark:text-gray-300">TODO LIST</h1>
-      <NewTodoInput onAdd={(newTodo) => setTodos([...todos, newTodo])} />
+      <NewTodoInput todos={todos} setTodos={setTodos} />
       {todos.length > 0 && (
         <div className="w-full not-format mt-4 flex flex-col gap-4">
           <section className="flex flex-col gap-4">
