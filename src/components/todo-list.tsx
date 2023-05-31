@@ -127,44 +127,54 @@ function SortingButton({
 
 function TodoItemDescription({
   todo,
+  todos,
   editTodoId,
-  onEdit,
-  onSave,
+  setEditTodoId,
+  setTodos,
 }: {
   todo: Todo
+  todos: Array<Todo>
   editTodoId: EditTodoId
-  onEdit: (newTodo: Todo) => void
-  onSave: (newEditTodoId: EditTodoId) => void
+  setEditTodoId: Dispatch<SetStateAction<EditTodoId>>
+  setTodos: Dispatch<SetStateAction<Array<Todo>>>
 }) {
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    onEdit({ ...todo, text: event.target.value })
+    setTodos(
+      todos.map((currentTodo) => {
+        if (currentTodo.id === todo.id) {
+          return {
+            ...todo,
+            text: event.target.value.trim(),
+          }
+        } else {
+          return currentTodo
+        }
+      })
+    )
   }
 
   function handleKeyUp(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
-      onSave(null)
+      setEditTodoId(null)
     }
   }
 
-  let itemTextContent = <>{todo.text}</>
-  if (todo.completed) {
-    itemTextContent = <s>{todo.text}</s>
-  }
-
-  let itemLabelContent = <>{itemTextContent}</>
-
-  if (editTodoId === todo.id) {
-    itemLabelContent = (
-      <TextInput
-        type="text"
-        value={todo.text}
-        onChange={handleChange}
-        onKeyUp={handleKeyUp}
-      />
-    )
-  }
-
-  return <Label className="break-all">{itemLabelContent}</Label>
+  return (
+    <Label className="break-all">
+      {todo.id === editTodoId ? (
+        <TextInput
+          type="text"
+          value={todo.text}
+          onChange={handleChange}
+          onKeyUp={handleKeyUp}
+        />
+      ) : todo.completed ? (
+        <s>{todo.text}</s>
+      ) : (
+        todo.text
+      )}
+    </Label>
+  )
 }
 
 function TodoItemAction({
@@ -372,9 +382,10 @@ export default function TodoList() {
                   <div className="flex-auto">
                     <TodoItemDescription
                       todo={todo}
+                      todos={todos}
                       editTodoId={editTodoId}
-                      onEdit={(newTodo) => changeTodo(newTodo)}
-                      onSave={(newEditTodoId) => setEditTodoId(newEditTodoId)}
+                      setTodos={setTodos}
+                      setEditTodoId={setEditTodoId}
                     />
                   </div>
                   <div className="flex flex-row gap-2">
