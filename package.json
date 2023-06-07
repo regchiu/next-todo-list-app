@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@types/node": "18.16.2",
@@ -30,6 +31,8 @@
   "devDependencies": {
     "eslint-config-prettier": "^8.8.0",
     "flowbite-typography": "^1.0.3",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.2",
     "prettier": "2.8.8"
   }
 }
