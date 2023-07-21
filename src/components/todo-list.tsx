@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import { useState, useEffect, useReducer, useMemo } from 'react'
 import { TextInput, Checkbox, Label, Button } from 'flowbite-react'
 import {
   MdKeyboardBackspace,
@@ -10,40 +10,66 @@ import {
 import { FaSortAmountDown, FaSortAmountUp } from 'react-icons/fa'
 import cn from 'classnames'
 
+const STORAGE_KEY = 'next-todo-list'
+
 type Todo = {
   id: number
   text: string
   completed: boolean
 }
 
+type TodoAction =
+  | {
+      type: 'added'
+      id: number
+      text: string
+    }
+  | { type: 'changed'; todo: Todo }
+  | { type: 'deleted'; id: number }
+  | { type: 'clear-completed' }
+
 type Visibility = 'all' | 'active' | 'completed'
 type Sorting = 'ascending' | 'descending'
-type EditTodoId = number | null
 
-const STORAGE_KEY = 'next-todo-list'
+function todosReducer(todos: Array<Todo>, action: TodoAction) {
+  switch (action.type) {
+    case 'added': {
+      return [
+        ...todos,
+        {
+          id: action.id,
+          text: action.text,
+          completed: false,
+        },
+      ]
+    }
+    case 'changed': {
+      return todos.map((todo) => {
+        if (todo.id === action.todo.id) {
+          return action.todo
+        } else {
+          return todo
+        }
+      })
+    }
+    case 'deleted': {
+      return todos.filter((todo) => todo.id !== action.id)
+    }
+    case 'clear-completed': {
+      return todos.filter((todo) => !todo.completed)
+    }
+  }
+}
 
-function NewTodoInput({
-  todos,
-  setTodos,
-}: {
-  todos: Array<Todo>
-  setTodos: Dispatch<SetStateAction<Array<Todo>>>
-}) {
-  const [todoText, setTodoText] = useState<string>('')
+function TodoAddInput({ onAddTodo }: { onAddTodo: (text: string) => void }) {
+  const [text, setText] = useState('')
 
   function handleKeyUpEnter(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
       const text = (event.target as HTMLInputElement).value.trim()
       if (text) {
-        setTodos([
-          ...todos,
-          {
-            id: Date.now(),
-            text,
-            completed: false,
-          },
-        ])
-        setTodoText('')
+        setText('')
+        onAddTodo(text)
       }
     }
   }
@@ -53,231 +79,120 @@ function NewTodoInput({
       type="text"
       autoFocus
       placeholder="What needs to be done?(Press enter to add)"
-      value={todoText}
+      value={text}
       shadow={true}
       rightIcon={MdKeyboardBackspace}
-      onChange={(e) => setTodoText(e.target.value)}
+      onChange={(e) => setText(e.target.value)}
       onKeyUp={handleKeyUpEnter}
     />
   )
 }
 
-function FilterBar({
-  todos,
-  setTodos,
-  searchText,
-  setSearchText,
-  sorting,
-  setSorting,
-  visibility,
-  setVisibility,
-}: {
-  todos: Array<Todo>
-  setTodos: Dispatch<SetStateAction<Array<Todo>>>
-  searchText: string
-  setSearchText: Dispatch<SetStateAction<string>>
-  sorting: Sorting
-  setSorting: Dispatch<SetStateAction<Sorting>>
-  visibility: Visibility
-  setVisibility: Dispatch<SetStateAction<Visibility>>
-}) {
-  const remaining = todos.filter((todo) => !todo.completed).length
-
-  function handleSortingClick(direction: Sorting) {
-    setSorting(direction)
-  }
-
-  function handleClearCompletedClick() {
-    setTodos(todos.filter((todo) => !todo.completed))
-  }
-
-  return (
-    <section className="flex flex-col gap-4">
-      <div className="dark:text-gray-300">
-        <span>
-          <strong>{remaining}</strong>{' '}
-          <span>{remaining > 1 ? 'item' : 'items'} left</span>
-        </span>
-      </div>
-      <TextInput
-        type="text"
-        shadow={true}
-        value={searchText}
-        placeholder="Search todo text"
-        rightIcon={MdSearch}
-        onChange={(e) => setSearchText(e.target.value)}
-      />
-      <div className="flex flex-row w-full gap-4">
-        {sorting === 'descending' ? (
-          <Button size="sm" onClick={() => handleSortingClick('ascending')}>
-            <FaSortAmountDown className="h-5 w-5" />
-          </Button>
-        ) : (
-          <Button size="sm" onClick={() => handleSortingClick('descending')}>
-            <FaSortAmountUp className="h-5 w-5" />
-          </Button>
-        )}
-        <Button.Group>
-          <Button
-            size="sm"
-            color={visibility === 'all' ? 'info' : 'gray'}
-            onClick={() => setVisibility('all')}
-          >
-            All
-          </Button>
-          <Button
-            size="sm"
-            color={visibility === 'active' ? 'info' : 'gray'}
-            onClick={() => setVisibility('active')}
-          >
-            Active
-          </Button>
-          <Button
-            size="sm"
-            color={visibility === 'completed' ? 'info' : 'gray'}
-            onClick={() => setVisibility('completed')}
-          >
-            Completed
-          </Button>
-        </Button.Group>
-        <Button
-          className={cn({ hidden: remaining >= todos.length })}
-          size="sm"
-          outline={true}
-          color="info"
-          onClick={() => handleClearCompletedClick()}
-        >
-          Clear Completed
-        </Button>
-      </div>
-    </section>
-  )
-}
-
 function TodoItem({
   todo,
-  todos,
-  editTodoId,
-  setEditTodoId,
-  setTodos,
+  onChange,
+  onDelete,
 }: {
   todo: Todo
-  todos: Array<Todo>
-  editTodoId: EditTodoId
-  setEditTodoId: Dispatch<SetStateAction<EditTodoId>>
-  setTodos: Dispatch<SetStateAction<Array<Todo>>>
+  onChange: (todo: Todo) => void
+  onDelete: (todoId: number) => void
 }) {
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    setTodos(
-      todos.map((currentTodo) => {
-        if (currentTodo.id === todo.id) {
-          return {
-            ...todo,
-            text: event.target.value.trim(),
-          }
-        } else {
-          return currentTodo
-        }
-      })
+  const [isEditing, setIsEditing] = useState(false)
+  let todoContent
+
+  if (isEditing) {
+    todoContent = (
+      <>
+        <TextInput
+          className="flex-auto break-all"
+          type="text"
+          value={todo.text}
+          onChange={(e) => {
+            onChange({
+              ...todo,
+              text: e.target.value,
+            })
+          }}
+        />
+        <Button size="sm" color="success" onClick={() => setIsEditing(false)}>
+          <MdSave />
+        </Button>
+      </>
+    )
+  } else {
+    todoContent = (
+      <>
+        <span className="flex-auto break-all">
+          {todo.completed ? <s>{todo.text}</s> : todo.text}
+        </span>
+        <Button size="sm" onClick={() => setIsEditing(true)}>
+          <MdEdit />
+        </Button>
+      </>
     )
   }
 
-  function handleKeyUp(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key === 'Enter') {
-      setEditTodoId(null)
-    }
-  }
-
-  function handleEditClick() {
-    setEditTodoId(todo.id)
-  }
-
-  function handleSaveClick() {
-    setEditTodoId(null)
-  }
-
-  function handleDeleteClick() {
-    setTodos(todos.filter((currentTodo) => currentTodo.id !== todo.id))
-  }
-
   return (
-    <div className="flex flex-row items-center w-full gap-4">
+    <Label className="flex flex-row items-center w-full gap-4">
       <Checkbox
         checked={todo.completed}
-        onChange={(e) =>
-          setTodos(
-            todos.map((currentTodo) => {
-              if (currentTodo.id === todo.id) {
-                return {
-                  ...todo,
-                  completed: e.target.checked,
-                }
-              } else {
-                return currentTodo
-              }
-            })
-          )
-        }
+        onChange={(e) => {
+          onChange({
+            ...todo,
+            completed: e.target.checked,
+          })
+        }}
       />
-      <div className="flex-auto">
-        <Label className="break-all">
-          {todo.id === editTodoId ? (
-            <TextInput
-              type="text"
-              value={todo.text}
-              onChange={handleChange}
-              onKeyUp={handleKeyUp}
-            />
-          ) : todo.completed ? (
-            <s>{todo.text}</s>
-          ) : (
-            todo.text
-          )}
-        </Label>
-      </div>
-      <div className="flex flex-row gap-2">
-        {todo.id === editTodoId ? (
-          <Button size="sm" color="success" onClick={handleSaveClick}>
-            <MdSave />
-          </Button>
-        ) : (
-          <Button size="sm" onClick={handleEditClick}>
-            <MdEdit />
-          </Button>
-        )}
-        <Button size="sm" color="failure" onClick={handleDeleteClick}>
-          <MdDelete />
-        </Button>
-      </div>
-    </div>
+      {todoContent}
+      <Button size="sm" color="failure" onClick={() => onDelete(todo.id)}>
+        <MdDelete />
+      </Button>
+    </Label>
   )
 }
 
 export default function TodoList() {
-  const [todos, setTodos] = useState<Array<Todo>>(
+  const [todos, dispatchTodos] = useReducer(
+    todosReducer,
     JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
   )
+  const [searchText, setSearchText] = useState('')
   const [visibility, setVisibility] = useState<Visibility>('all')
-  const [searchText, setSearchText] = useState<string>('')
-  const [editTodoId, setEditTodoId] = useState<EditTodoId>(null)
   const [sorting, setSorting] = useState<Sorting>('descending')
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
-  }, [todos])
+  const remaining = todos.filter((todo) => !todo.completed).length
 
-  const filteredTodos = useMemo(
-    () => getFilteredTodos(todos, visibility, sorting, searchText),
-    [todos, visibility, sorting, searchText]
-  )
+  function handleAddTodo(text: string) {
+    dispatchTodos({
+      type: 'added',
+      id: Date.now(),
+      text,
+    })
+  }
 
-  function getFilteredTodos(
-    todos: Todo[],
-    visibility: Visibility,
-    sorting: Sorting,
-    searchText: string
-  ) {
+  function handleChangeTodo(todo: Todo) {
+    dispatchTodos({
+      type: 'changed',
+      todo,
+    })
+  }
+
+  function handleDeleteTodo(todoId: number) {
+    dispatchTodos({
+      type: 'deleted',
+      id: todoId,
+    })
+  }
+
+  function handleClearCompleteTodo() {
+    dispatchTodos({
+      type: 'clear-completed',
+    })
+  }
+
+  const filteredTodos = useMemo(() => {
     let filteredTodos = []
+
     switch (visibility) {
       case 'all':
         filteredTodos = [...todos]
@@ -305,64 +220,113 @@ export default function TodoList() {
           todo.text.toLowerCase().includes(searchText.toLowerCase())
         )
       : filteredTodos
-  }
+  }, [searchText, sorting, todos, visibility])
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
+  }, [todos])
 
   return (
     <div className="w-full format lg:format-lg">
       <h1 className="text-center dark:text-gray-300">TODO LIST</h1>
-      <NewTodoInput todos={todos} setTodos={setTodos} />
-      {todos.length > 0 && (
-        <div className="w-full not-format mt-4 flex flex-col gap-4">
-          <FilterBar
-            todos={todos}
-            setTodos={setTodos}
-            searchText={searchText}
-            setSearchText={setSearchText}
-            sorting={sorting}
-            setSorting={setSorting}
-            visibility={visibility}
-            setVisibility={setVisibility}
+      <TodoAddInput onAddTodo={handleAddTodo} />
+      <div className="w-full not-format mt-4 flex flex-col gap-4">
+        <section className="flex flex-col gap-4">
+          <div className="dark:text-gray-300">
+            <span>
+              <strong>{remaining}</strong>{' '}
+              <span>{remaining > 1 ? 'item' : 'items'} left</span>
+            </span>
+          </div>
+          <TextInput
+            type="text"
+            shadow={true}
+            value={searchText}
+            placeholder="Search todo text"
+            rightIcon={MdSearch}
+            onChange={(e) => setSearchText(e.target.value)}
           />
-          <ul
-            className={cn(
-              [
-                'text-sm',
-                'font-medium',
-                'text-gray-900',
-                'bg-white',
-                'border',
-                'border-gray-200',
-                'rounded-lg',
-                'dark:bg-gray-700 dark:border-gray-600 dark:text-white',
-              ],
-              { hidden: filteredTodos.length === 0 }
+          <div className="flex flex-row w-full gap-4">
+            {sorting === 'descending' ? (
+              <Button size="sm" onClick={() => setSorting('ascending')}>
+                <FaSortAmountDown className="h-5 w-5" />
+              </Button>
+            ) : (
+              <Button size="sm" onClick={() => setSorting('descending')}>
+                <FaSortAmountUp className="h-5 w-5" />
+              </Button>
             )}
-          >
-            {filteredTodos.map((todo, index) => (
-              <li
-                key={todo.id}
-                className={cn(
-                  ['w-full', 'px-4', 'py-2', 'dark:border-gray-600'],
-                  { 'rounded-t-lg': index === 0 },
-                  {
-                    'border-b border-gray-200':
-                      index !== filteredTodos.length - 1,
-                  },
-                  { 'rounded-b-lg': index === filteredTodos.length - 1 }
-                )}
+            <Button.Group>
+              <Button
+                size="sm"
+                color={visibility === 'all' ? 'info' : 'gray'}
+                onClick={() => setVisibility('all')}
               >
-                <TodoItem
-                  todo={todo}
-                  todos={todos}
-                  editTodoId={editTodoId}
-                  setEditTodoId={setEditTodoId}
-                  setTodos={setTodos}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                All
+              </Button>
+              <Button
+                size="sm"
+                color={visibility === 'active' ? 'info' : 'gray'}
+                onClick={() => setVisibility('active')}
+              >
+                Active
+              </Button>
+              <Button
+                size="sm"
+                color={visibility === 'completed' ? 'info' : 'gray'}
+                onClick={() => setVisibility('completed')}
+              >
+                Completed
+              </Button>
+            </Button.Group>
+            <Button
+              className={cn({ hidden: remaining >= filteredTodos.length })}
+              size="sm"
+              outline={true}
+              color="info"
+              onClick={handleClearCompleteTodo}
+            >
+              Clear Completed
+            </Button>
+          </div>
+        </section>
+        <ul
+          className={cn(
+            [
+              'text-sm',
+              'font-medium',
+              'text-gray-900',
+              'bg-white',
+              'border',
+              'border-gray-200',
+              'rounded-lg',
+              'dark:bg-gray-700 dark:border-gray-600 dark:text-white',
+            ],
+            { hidden: filteredTodos.length === 0 }
+          )}
+        >
+          {filteredTodos.map((todo, index) => (
+            <li
+              key={todo.id}
+              className={cn(
+                ['w-full', 'px-4', 'py-2', 'dark:border-gray-600'],
+                { 'rounded-t-lg': index === 0 },
+                {
+                  'border-b border-gray-200':
+                    index !== filteredTodos.length - 1,
+                },
+                { 'rounded-b-lg': index === filteredTodos.length - 1 }
+              )}
+            >
+              <TodoItem
+                todo={todo}
+                onChange={handleChangeTodo}
+                onDelete={handleDeleteTodo}
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   )
 }
